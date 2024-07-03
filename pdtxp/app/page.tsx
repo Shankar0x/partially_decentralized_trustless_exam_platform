@@ -17,9 +17,9 @@ const LoginForm = () => {
               className="py-2 px-3 w-full text-black text-lg font-light outline-none mb-4 rounded-t-lg"
             />
             <input 
-              type="text" 
+              type="password" 
               name="" 
-              placeholder="Private Key" 
+              placeholder="Password" 
               className="py-2 px-3 w-full text-black text-lg font-light outline-none mb-4 rounded-b-lg"
             />
             <div className="flex mt-5 justify-between items-center">
