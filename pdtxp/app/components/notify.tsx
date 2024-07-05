@@ -15,7 +15,7 @@ export const showToast = (msg: string, type: 'default' | 'success' | 'error' = '
 };
 
 const Notify = () => {
-    return <Toaster position="top-right" reverseOrder={false} />;
+    return <Toaster position="top-left" reverseOrder={false} />;
 };
 
 export default Notify;
