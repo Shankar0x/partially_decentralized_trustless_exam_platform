@@ -17,6 +17,9 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
+    pubkey:{
+        type: String,
+    }
 }, 
     {
     collection: 'authCollections' 

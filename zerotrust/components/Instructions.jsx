@@ -10,8 +10,21 @@ export default function Instructions() {
     setIsChecked(!isChecked);
   };
 
-  const handleStartTest = () => {
-    console.log('Test started...');
+  const handleStartTest = async () => {
+    try {
+      const response = await fetch('/api/generateKeys');
+      if (!response.ok) {
+        throw new Error('Failed to generate keys');
+      }
+
+      const data = await response.json();
+      console.log('Public Key:', data.publicKey);
+      console.log('Private Key:', data.privateKey);
+
+      // Optionally, you can perform additional actions with the keys
+    } catch (error) {
+      console.error('Error generating keys:', error);
+    }
   };
 
   return (
