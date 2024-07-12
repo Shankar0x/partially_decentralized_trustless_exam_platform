@@ -12,16 +12,33 @@ export default function Instructions() {
 
   const handleStartTest = async () => {
     try {
-      const response = await fetch('/api/generateKeys');
+      if (!session?.user?.eno) {
+        throw new Error('Enrollment number not found in session');
+      }
+
+      const requestBody = {
+        eno: session.user.eno
+      };
+
+      const response = await fetch('/api/generateKeys', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
       if (!response.ok) {
         throw new Error('Failed to generate keys');
       }
 
       const data = await response.json();
-      console.log('Public Key:', data.publicKey);
-      console.log('Private Key:', data.privateKey);
+      console.log('Public Key from Instructions:', data.publicKey);
+      console.log('Private Key from Instructions:', data.privateKey);
 
-      // Optionally, you can perform additional actions with the keys
+      // Optionally update session with private key
+      // if needed, using setSession from next-auth/react
+
     } catch (error) {
       console.error('Error generating keys:', error);
     }
