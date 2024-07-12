@@ -3,13 +3,14 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useState } from "react";
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Toaster, toast } from 'react-hot-toast';
 
 export default function LoginForm(){
 
     const [eno, setEno] = useState("");
     const [pass, setPass] = useState("");  
-    const [error, setError] = useState("");
     const router = useRouter();
+
     const handleSubmit = async (e) => {
       e.preventDefault();
 
@@ -19,14 +20,16 @@ export default function LoginForm(){
         });
 
         if(res.error){
-          setError("Invalid Credentials");
+          toast.error("Authentication Failed");
           return;
         }
-        
+
+        toast.success("Login Successful");
         router.replace("dashboard");
 
       } catch (error){
         console.log(error);
+        toast.error("Something went wrong");
       }
     };
 
@@ -54,15 +57,9 @@ export default function LoginForm(){
               <div className="flex mt-5 justify-between items-center">
                 <button type="submit" className="bg-black text-white font-medium py-2 px-8">Log In</button>
               </div>
-              {
-                error && (
-                  <div className="bg-red-500 text-white w-fit text-sm py-1 px-3 rounded-md mt-2">
-                    {error}
-                  </div>
-                )}
-              
             </form>
           </aside>
         </div>
+        <Toaster />
       </main>);
 }

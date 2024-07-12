@@ -25,7 +25,6 @@ export const authOptions = {
             return null;
           }
 
-          // Return the user object including eno and pfp
           return {
             id: user._id,
             name: user.name,
