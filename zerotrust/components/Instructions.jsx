@@ -1,10 +1,14 @@
 "use client";
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { Keypair } from '@solana/web3.js';
+import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 
 export default function Instructions() {
   const { data: session } = useSession();
   const [isChecked, setIsChecked] = useState(false);
+  const [publicKey, setPublicKey] = useState('');
 
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
@@ -16,8 +20,17 @@ export default function Instructions() {
         throw new Error('Enrollment number not found in session');
       }
 
+      // Generate keypair on the client side
+      const keypair = Keypair.generate();
+      const publicKey = keypair.publicKey.toBase58();
+      const privateKey = Buffer.from(keypair.secretKey).toString('base64');
+
+      // Store private key in browser cookie
+      Cookies.set('privateKey', privateKey, { expires: 1 });
+
       const requestBody = {
-        eno: session.user.eno
+        eno: session.user.eno,
+        publicKey: publicKey
       };
 
       const response = await fetch('/api/generateKeys', {
@@ -29,18 +42,18 @@ export default function Instructions() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate keys');
+        throw new Error('Failed to store public key');
       }
 
-      const data = await response.json();
-      console.log('Public Key from Instructions:', data.publicKey);
-      console.log('Private Key from Instructions:', data.privateKey);
+      toast.success('Keys generated successfully');
 
-      // Optionally update session with private key
-      // if needed, using setSession from next-auth/react
+      // Fetch the stored public key from the API
+      const data = await response.json();
+      setPublicKey(data.publicKey);
 
     } catch (error) {
       console.error('Error generating keys:', error);
+      toast.error('Failed to generate keys');
     }
   };
 
@@ -75,6 +88,17 @@ export default function Instructions() {
           </button>
         </div>
       </div>
+      {publicKey && (
+        <div className="mt-4">
+          <h2 className="text-2xl font-bold mb-2">Your Public Key:</h2>
+          <input
+            type="text"
+            value={publicKey}
+            readOnly
+            className="border border-gray-300 rounded p-2 w-full"
+          />
+        </div>
+      )}
     </div>
   );
 }
