@@ -1,4 +1,4 @@
-import UserModel from "@/models/user";
+import { User, Questions } from '@/models/user';
 
 export async function POST(request) {
     const requestData = await request.json();
@@ -12,7 +12,7 @@ export async function POST(request) {
     }
 
     try {
-        let user = await UserModel.findOne({ eno: eno });
+        let user = await User.findOne({ eno: eno });
 
         if (!user) {
             return new Response(JSON.stringify({ error: "Enrollment number not found in database" }), {

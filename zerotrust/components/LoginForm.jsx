@@ -12,7 +12,7 @@ export default function LoginForm(){
     const router = useRouter();
 
     const handleSubmit = async (e) => {
-      e.preventDefault();
+      e.preventDefault(); 
 
       try{
         const res = await signIn('credentials', {

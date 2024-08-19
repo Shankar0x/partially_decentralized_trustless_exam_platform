@@ -19,20 +19,20 @@ export default function Instructions() {
       if (!session?.user?.eno) {
         throw new Error('Enrollment number not found in session');
       }
-
+  
       // Generate keypair on the client side
       const keypair = Keypair.generate();
       const publicKey = keypair.publicKey.toBase58();
       const privateKey = Buffer.from(keypair.secretKey).toString('base64');
-
+  
       // Store private key in browser cookie
       Cookies.set('privateKey', privateKey, { expires: 1 });
-
+  
       const requestBody = {
         eno: session.user.eno,
         publicKey: publicKey
       };
-
+  
       const response = await fetch('/api/generateKeys', {
         method: 'POST',
         headers: {
@@ -40,22 +40,43 @@ export default function Instructions() {
         },
         body: JSON.stringify(requestBody)
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to store public key');
       }
-
+  
       toast.success('Keys generated successfully');
-
+  
       // Fetch the stored public key from the API
       const data = await response.json();
       setPublicKey(data.publicKey);
-
+  
+      // Fetch the total number of documents from the /api/questionsCount endpoint
+      const countResponse = await fetch('/api/questionsCount');
+      const { count } = await countResponse.json();
+  
+      // Generate 4 random numbers from 1 to count
+      const randomNumbers = generateRandomNumbers(1, count, 4);
+  
+      // Log the random numbers to the console
+      console.log('Generated Random Numbers:', randomNumbers);
+  
     } catch (error) {
-      console.error('Error generating keys:', error);
-      toast.error('Failed to generate keys');
+      console.error('Error generating keys or fetching questions:', error);
+      toast.error('Failed to generate keys or fetch questions');
     }
   };
+  
+  // Function to generate unique random numbers
+  const generateRandomNumbers = (min, max, count) => {
+    const numbers = new Set();
+    while (numbers.size < count) {
+      const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+      numbers.add(rand);
+    }
+    return Array.from(numbers);
+  };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
