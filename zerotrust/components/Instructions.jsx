@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { Keypair } from '@solana/web3.js';
 import Cookies from 'js-cookie';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 export default function Instructions() {
   const { data: session } = useSession();
@@ -13,7 +14,7 @@ export default function Instructions() {
   const handleCheckboxChange = () => {
     setIsChecked(!isChecked);
   };
-
+  const router = useRouter();
   const handleStartTest = async () => {
     try {
       if (!session?.user?.eno) {
@@ -30,15 +31,15 @@ export default function Instructions() {
   
       const requestBody = {
         eno: session.user.eno,
-        publicKey: publicKey
+        publicKey: publicKey,
       };
   
       const response = await fetch('/api/generateKeys', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
   
       if (!response.ok) {
@@ -46,10 +47,6 @@ export default function Instructions() {
       }
   
       toast.success('Keys generated successfully');
-  
-      // Fetch the stored public key from the API
-      const data = await response.json();
-      setPublicKey(data.publicKey);
   
       // Fetch the total number of documents from the /api/questionsCount endpoint
       const countResponse = await fetch('/api/questionsCount');
@@ -61,6 +58,10 @@ export default function Instructions() {
       // Log the random numbers to the console
       console.log('Generated Random Numbers:', randomNumbers);
   
+      // Save the random numbers as a cookie
+      Cookies.set('randomNumbers', JSON.stringify(randomNumbers), { expires: 1 });
+  
+      router.push('/questions');
     } catch (error) {
       console.error('Error generating keys or fetching questions:', error);
       toast.error('Failed to generate keys or fetch questions');
@@ -76,6 +77,7 @@ export default function Instructions() {
     }
     return Array.from(numbers);
   };
+  
   
 
   return (
