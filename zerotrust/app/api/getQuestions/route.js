@@ -27,16 +27,23 @@ export async function POST(req) {
     // Query the database to get the questions
     const questions = await Questions.find({ sno: { $in: serialNumbers } });
 
-    // Decrypt questions and options using fernet
-    const decryptedQuestions = questions.map(question => ({
-      q: decrypt(question.q),
-      a: decrypt(question.a),
-      b: decrypt(question.b),
-      c: decrypt(question.c),
-      d: decrypt(question.d)
-    }));
+    // Create a map for quick access to questions by their serial number
+    const questionMap = new Map(questions.map(question => [question.sno, question]));
 
-    return NextResponse.json(decryptedQuestions, { status: 200 });
+    // Reorder the questions based on randomNumbers
+    const orderedQuestions = randomNumbers.map((num) => {
+      const serial = `q${num}`;
+      const question = questionMap.get(serial);
+      return {
+        q: decrypt(question.q),
+        a: decrypt(question.a),
+        b: decrypt(question.b),
+        c: decrypt(question.c),
+        d: decrypt(question.d)
+      };
+    });
+
+    return NextResponse.json(orderedQuestions, { status: 200 });
   } catch (error) {
     console.error('Error fetching or decrypting questions:', error);
     return NextResponse.json({ error: 'Failed to fetch or decrypt questions' }, { status: 500 });

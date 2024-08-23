@@ -2,18 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import QuestionPage from '@/components/QuestionPage';
 import Cookies from 'js-cookie';
+import { useSession } from 'next-auth/react';
 
 const Question = () => {
+  const { data: session } = useSession();
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      // Retrieve the random numbers from the cookie
       const randomNumbers = JSON.parse(Cookies.get('randomNumbers'));
 
-      // Fetch questions from the API
       const response = await fetch('/api/getQuestions', {
         method: 'POST',
         headers: {
@@ -30,13 +31,20 @@ const Question = () => {
   }, []);
 
   const handleNext = () => {
+    if (selectedOption !== null) {
+      setAnswers((prev) => {
+        const newAnswers = [...prev];
+        newAnswers[currentQuestion] = selectedOption;
+        return newAnswers;
+      });
+    }
     setCurrentQuestion((prev) => Math.min(prev + 1, questions.length - 1));
-    setSelectedOption(null); // Reset option when moving to the next question
+    setSelectedOption(null);
   };
 
   const handlePrevious = () => {
     setCurrentQuestion((prev) => Math.max(prev - 1, 0));
-    setSelectedOption(null); // Reset option when moving to the previous question
+    setSelectedOption(answers[currentQuestion - 1] || null);
   };
 
   const handleClear = () => {
@@ -47,12 +55,53 @@ const Question = () => {
     setSelectedOption(option);
   };
 
-  const handleSubmit = () => {
-    // Logic to submit the test
+  const handleSubmit = async () => {
+    const rollNumber = session?.user?.name;
+    const randomNumbers = JSON.parse(Cookies.get('randomNumbers'));
+  
+    // Ensure the last selected option is captured
+    const updatedAnswers = [...answers];
+    if (selectedOption !== null) {
+      updatedAnswers[currentQuestion] = selectedOption;
+    }
+  
+    // Format questions with "q" prefix
+    const formattedQuestions = randomNumbers.map(num => `q${num}`);
+  
+    const submissionData = {
+      rollNumber,
+      questions: formattedQuestions, // Store questions with "q" prefix
+      answers: updatedAnswers,        // Directly use updatedAnswers
+    };
+  
+    try {
+      const response = await fetch('/api/submitExam', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(submissionData)
+      });
+  
+      if (response.ok) {
+        // Handle success, maybe redirect to a success page or show a message
+        console.log('Exam submitted successfully');
+        // Redirect to the "submitted" page
+        window.location.href = '/submitted';
+      } else {
+        // Handle error
+        console.error('Failed to submit the exam');
+      }
+    } catch (error) {
+      console.error('Error submitting the exam:', error);
+    }
   };
+  
+  
+  
 
   if (questions.length === 0) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return (
