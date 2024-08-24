@@ -56,7 +56,7 @@ const Question = () => {
   };
 
   const handleSubmit = async () => {
-    const rollNumber = session?.user?.name;
+    const rollNumber = session?.user?.eno;
     const randomNumbers = JSON.parse(Cookies.get('randomNumbers'));
   
     // Ensure the last selected option is captured
